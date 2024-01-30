@@ -12,8 +12,15 @@
     "timeout" : 300,
     "subnet_ids" : [ ],
     "security_group_ids" : [ ],
-    "dependencies" : [ ],
-    "event_sources" : [ ],
+    "dependencies" : [ {
+      "resource_name" : "Events",
+      "resource_type" : "dynamodb_table"
+    } ],
+    "event_sources" : [ {
+      "resource_type" : "dynamodb_trigger",
+      "target_table" : "Events",
+      "batch_size" : 10
+    } ],
     "env_variables" : { },
     "publish_version" : false,
     "snap_start" : "None"
