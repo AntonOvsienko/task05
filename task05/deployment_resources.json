@@ -4,17 +4,12 @@
       "Statement": [
         {
           "Action": [
-            "logs:CreateLogGroup",
-            "logs:CreateLogStream",
-            "logs:PutLogEvents",
-            "dynamodb:GetItem",
-            "dynamodb:Query",
-            "dynamodb:PutItem",
-            "dynamodb:Batch*",
-            "dynamodb:DeleteItem",
-            "ssm:PutParameter",
-            "ssm:GetParameter",
-            "kms:Decrypt"
+            "logs:*",
+            "dynamodb:*",
+            "ssm:*",
+            "kms:*",
+            "sns:*",
+            "sqs:*"
           ],
           "Effect": "Allow",
           "Resource": "*"
@@ -29,7 +24,6 @@
     "principal_service": "lambda",
     "custom_policies": [
       "lambda-basic-execution",
-      "AmazonAPIGatewayAdministrator"
     ],
     "resource_type": "iam_role",
     "allowed_accounts": [
@@ -45,6 +39,19 @@
       }
     ],
     "resources": {
+      "/": {
+        "enable_cors": true,
+        "POST": {
+          "integration_request_body_template": {},
+          "authorization_type": "NONE",
+          "integration_type": "lambda",
+          "method_request_parameters": {},
+          "default_error_pattern": true,
+          "integration_passthrough_behavior": "WHEN_NO_TEMPLATES",
+          "lambda_name": "api_handler",
+          "enable_proxy": true
+        }
+      },
       "/events": {
         "enable_cors": true,
         "POST": {
@@ -70,3 +77,4 @@
     "autoscaling": []
   }
 }
+
