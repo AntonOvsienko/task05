@@ -1,8 +1,0 @@
-account_id: '388185665084'
-aws_access_key_id: AKIAVUYNLFY6BBQ3Z4XP
-aws_secret_access_key: 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
-deploy_target_bucket: syndicate-artefacts-388185665084-eucentral1
-extended_prefix_mode: false
-project_path: F:\AWS\aws-projects\task05\task05
-region: eu-central-1
-use_temp_creds: false
