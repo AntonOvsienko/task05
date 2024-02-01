@@ -10,10 +10,13 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.syndicate.deployment.annotations.events.DynamoDbTriggerEventSource;
 import com.syndicate.deployment.annotations.lambda.LambdaHandler;
 
-import java.time.Instant;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 
 @DynamoDbTriggerEventSource(targetTable = "Events", batchSize = 10)
@@ -28,41 +31,32 @@ public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, A
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
 
+        ObjectMapper objectMapper = new ObjectMapper();
+        String requestBody = input.getBody();
+
         try {
-            // Получение данных из входного запроса
-            String requestBody = input.getBody();
-            int principalId = input.getPathParameters().containsKey("principalId") ? Integer.parseInt(input.getPathParameters().get("principalId")) : -1;
-
-            // Генерация UUID v4 для id события
             String eventId = UUID.randomUUID().toString();
-
-            // Получение текущей временной метки в формате ISO 8601
-            String createdAt = Instant.now().toString();
-
-            // Инициализация клиента DynamoDB
+            Date date = new Date();
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String createdAt = formatter.format(date);
             AmazonDynamoDB dynamoDBClient = AmazonDynamoDBClientBuilder.defaultClient();
             DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
+            JsonNode jsonNode = objectMapper.readTree(requestBody);
 
-            // Создание нового элемента для таблицы
+            String principalId = jsonNode.get("principalId").toString();
+            String body = jsonNode.get("content").toString();
             Item eventItem = new Item().withPrimaryKey("id", eventId)
-                    .withNumber("principalId", principalId)
+                    .withNumber("principalId", Integer.parseInt(principalId))
                     .withString("createdAt", createdAt)
-                    .withJSON("body", requestBody);
-
-            // Сохранение элемента в таблице DynamoDB
+                    .withString("body", body);
             Table eventsTable = dynamoDB.getTable(TABLE_NAME);
             PutItemOutcome outcome = eventsTable.putItem(eventItem);
-
-            // Формирование ответа
             response.setStatusCode(201);
-			response.setBody(String.format("{\"id\": \"%s\", \"principalId\": %d, \"createdAt\": \"%s\", \"body\": %s}",
-					eventId, principalId, createdAt, requestBody));
-
+            response.setBody(String.format("{\"id\": \"%s\", \"principalId\": %d, \"createdAt\": \"%s\", \"body\": %s}",
+                    eventId, Integer.parseInt(principalId), createdAt, body));
         } catch (Exception e) {
-            // Обработка ошибок
-            e.printStackTrace(); // Это добавлено для вывода ошибки в логи AWS Lambda
             response.setStatusCode(500);
-            response.setBody("Error - exception: " + e.getMessage());
+            response.setBody("Error: " + e);
         }
 
         return response;
