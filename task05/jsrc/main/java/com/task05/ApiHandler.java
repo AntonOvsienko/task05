@@ -21,7 +21,8 @@ import java.util.UUID;
 
 @DynamoDbTriggerEventSource(targetTable = "Events", batchSize = 10)
 @LambdaHandler(lambdaName = "api_handler",
-        roleName = "api_handler-role"
+        roleName = "api_handler-role",
+        aliasName = "target_table"
 )
 public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
