@@ -1,5 +1,7 @@
 package com.task05;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
@@ -40,7 +42,17 @@ public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, A
             Date date = new Date();
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String createdAt = formatter.format(date);
-            AmazonDynamoDB dynamoDBClient = AmazonDynamoDBClientBuilder.defaultClient();
+            String accessKey = "ASIAS3MHLZ5IXFBZ7IID";
+            String secretKey = "rd+T5L0Gju0I9g9NnAu5H6MvK7XDtaq1KI3peu/4";
+            String region = "eu-central-1";
+
+            BasicAWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretKey);
+
+            AmazonDynamoDB dynamoDBClient = AmazonDynamoDBClientBuilder.standard()
+                    .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
+                    .withRegion(region)
+                    .build();
+
             DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
             JsonNode jsonNode = objectMapper.readTree(requestBody);
 
